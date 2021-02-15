@@ -9,6 +9,7 @@ from WindowPattern import WindowPattern
 
 class GaussMethod(WindowPattern):
     number_var = 0
+    destroy_objects = []
 
     def __init__(self):
         super().__init__("Gauss method")
@@ -17,23 +18,24 @@ class GaussMethod(WindowPattern):
         inp_str = self.spinbox.get()
         if not inp_str.isdigit():
             messagebox.showerror("Ошибка", "Ожидается ввод числа")
-        elif int(inp_str) > 100 or int(inp_str) < 2:
-            messagebox.showerror("Ошибка", "Ожидается число в диапазоне от 2 до 100")
+        elif int(inp_str) > 10 or int(inp_str) < 2:
+            messagebox.showerror("Ошибка", "Ожидается число в диапазоне от 2 до 10")
         else:
             self.number_var = int(inp_str)
             self.dialog_window.destroy()
             self._build_matrix()
 
     def _new_command(self):
+        self._clear_frame()
         self.dialog_window = tk.Tk()
         self.dialog_window.geometry("300x100")
         self.dialog_window.resizable(False, False)
         label = tk.Label(self.dialog_window, text="Введите количество уравнений в системе\n"
                                                   "Количество переменных должно быть равно\n"
-                                                  " количеству уравнений, но не больше 100",
+                                                  " количеству уравнений, но не больше 10",
                          font=("Times new Roman", 10))
         label.pack()
-        self.spinbox = tk.Spinbox(self.dialog_window, from_=2, to=100, width=7, font="10")
+        self.spinbox = tk.Spinbox(self.dialog_window, from_=2, to=10, width=7, font="10")
         self.spinbox.bind('<Return>', self._set_number_var)
         self.spinbox.pack()
         button = tk.Button(self.dialog_window, text="Ввод", command=self._set_number_var, font="10")
@@ -51,13 +53,18 @@ class GaussMethod(WindowPattern):
         for y in range(0, self.number_var):
             for x in range(0, self.number_var):
                 self._matrix[y][x] = tk.StringVar()
-                tk.Entry(textvariable=self._matrix[y][x], width=10).grid(row=y, column=x, padx=5, pady=5)
+                tmp = tk.Entry(textvariable=self._matrix[y][x], width=10)
+                tmp.grid(row=y, column=x, padx=5, pady=5)
+                self.destroy_objects.append(tmp)
 
             self._answers[y] = tk.StringVar()
-            tk.Entry(textvariable=self._answers[y], width=10).grid(row=y, column=self.number_var, padx=20, pady=5)
+            tmp = tk.Entry(textvariable=self._answers[y], width=10)
+            tmp.grid(row=y, column=self.number_var, padx=20, pady=5)
+            self.destroy_objects.append(tmp)
 
-        tk.Button(text="Расчет", command=self._start_calculations, width=20). \
-            grid(row=self.number_var, columnspan=self.number_var)
+        tmp = tk.Button(text="Расчет", command=self._start_calculations, width=20)
+        tmp.grid(row=self.number_var, columnspan=self.number_var)
+        self.destroy_objects.append(tmp)
 
     def _read_from_file(self):
         with open(self.file, "r") as f:
@@ -80,7 +87,6 @@ class GaussMethod(WindowPattern):
                 except ValueError:
                     return None
                 self._float_answers.append(tmp)
-
 
     def _start_calculations(self, valid=False):
         if not valid:
@@ -130,3 +136,7 @@ class GaussMethod(WindowPattern):
             self._float_answers[i] = tmp
 
         return True
+
+    def _clear_frame(self):
+        for obj in self.destroy_objects:
+            obj.destroy()
